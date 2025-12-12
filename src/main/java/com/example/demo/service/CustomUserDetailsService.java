@@ -7,9 +7,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.config.CustomUserDetails;
-import com.example.demo.model.User;
+import com.example.demo.entity.UserEntity;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.security.CustomUserDetails;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,15 +21,15 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-		User user = userRepository.findByEmailAndIsDeletedFalse(email)
-				.orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+		UserEntity userEntity = userRepository.findByEmailAndIsDeletedFalse(email)
+				.orElseThrow(() -> new UsernameNotFoundException("ユーザーが見つかりません: " + email));
 
 		return new CustomUserDetails(
-				user.getUserId(),
-				user.getEmail(),
-				user.getName(),
-				user.getPassword(),
-				user.getRoleCode(),
+				userEntity.getUserId(),
+				userEntity.getEmail(),
+				userEntity.getName(),
+				userEntity.getPassword(),
+				userEntity.getRole(),
 				Collections.emptyList(),
 				true);
 	}

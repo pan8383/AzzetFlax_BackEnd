@@ -9,8 +9,9 @@ import lombok.Getter;
 @Builder
 @Getter
 @AllArgsConstructor
-public class RentalReturnResponseDTO {
-	private UUID rentalId;
-	private boolean success;
-	private String errorMessage;
+public class RentalCreateResponseDTO {
+    private UUID rentalId;
+    private UUID assetId;
+    private Boolean success;
+    private String errorMessage;
 }

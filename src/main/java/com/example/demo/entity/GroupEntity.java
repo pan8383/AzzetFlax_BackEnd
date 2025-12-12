@@ -1,12 +1,10 @@
-package com.example.demo.model;
+package com.example.demo.entity;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -23,24 +21,17 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users")
-public class User {
+@Table(name = "groups")
+public class GroupEntity {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "group_id")
+	private UUID unitId;
+
 	@Column(name = "user_id")
 	private UUID userId;
 
 	@Column(name = "name")
 	private String name;
-
-	@Column(name = "email")
-	private String email;
-
-	@Column(name = "password")
-	private String password;
-
-	@Column(name = "role_cd")
-	private String roleCode;
 
 	@Builder.Default
 	@Column(name = "is_deleted")

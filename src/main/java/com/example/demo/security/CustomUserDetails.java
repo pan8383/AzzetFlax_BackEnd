@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.example.demo.security;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -6,12 +6,14 @@ import java.util.UUID;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.example.demo.model.Role;
+
 public class CustomUserDetails implements UserDetails {
 	private final UUID userId;
 	private final String username;
 	private final String name;
 	private final String password;
-	private final String roleCode;
+	private final Role role;
 	private final Collection<? extends GrantedAuthority> authorities;
 	private final boolean enabled;
 
@@ -20,14 +22,14 @@ public class CustomUserDetails implements UserDetails {
 			String username,
 			String name,
 			String password,
-			String roleCode,
+			Role role,
 			Collection<? extends GrantedAuthority> authorities,
 			boolean enabled) {
 		this.userId = userId;
 		this.username = username;
 		this.name = name;
 		this.password = password;
-		this.roleCode = roleCode;
+		this.role = role;
 		this.authorities = authorities;
 		this.enabled = enabled;
 	}
@@ -49,9 +51,9 @@ public class CustomUserDetails implements UserDetails {
 	public String getPassword() {
 		return password;
 	}
-	
-	public String getRoleCode() {
-		return roleCode;
+
+	public Role getRole() {
+		return role;
 	}
 
 	@Override

@@ -5,10 +5,10 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.example.demo.model.User;
+import com.example.demo.entity.UserEntity;
 
-public interface UserRepository extends JpaRepository<User, UUID> {
+public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 	boolean existsByEmailAndIsDeletedFalse(String email);
     
-    Optional<User> findByEmailAndIsDeletedFalse(String email);
+    Optional<UserEntity> findByEmailAndIsDeletedFalse(String email);
 }

@@ -11,10 +11,10 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.example.demo.model.Rental;
+import com.example.demo.entity.RentalEntity;
 import com.example.demo.model.RentalStatus;
 
-public interface RentalRepository extends JpaRepository<Rental, UUID> {
+public interface RentalRepository extends JpaRepository<RentalEntity, UUID> {
 
 	boolean existsByAssetUnitUnitIdAndStatusIn(UUID unitId, List<RentalStatus> assetUnitStatus);
 
@@ -26,12 +26,14 @@ public interface RentalRepository extends JpaRepository<Rental, UUID> {
 	 */
 	@Query("""
 			SELECT r
-			FROM Rental r
+			FROM RentalEntity r
 			WHERE
-				r.user.id = :userId
+				r.userEntity.userId = :userId
 				AND r.isDeleted = false
+				AND (:statuses IS NULL OR r.status IN :statuses)
 			""")
-	Page<Rental> searchRentalHistories(
+	Page<RentalEntity> searchRentalHistories(
+			@Param("statuses") List<RentalStatus> statuses,
 			@Param("userId") UUID userId,
 			Pageable pageable);
 
@@ -43,13 +45,13 @@ public interface RentalRepository extends JpaRepository<Rental, UUID> {
 	 */
 	@Query("""
 			SELECT r
-			FROM Rental r
+			FROM RentalEntity r
 			WHERE
-				r.user.id = :userId
+				r.userEntity.userId = :userId
 				AND r.rentalId = :rentalId
 				AND r.isDeleted = false
 			""")
-	Rental searchRentalHistoryDetail(
+	RentalEntity searchRentalHistoryDetail(
 			@Param("userId") UUID userId,
 			@Param("rentalId") UUID rentalId);
 
@@ -62,10 +64,10 @@ public interface RentalRepository extends JpaRepository<Rental, UUID> {
 	 */
 	@Modifying
 	@Query("""
-			    UPDATE Rental r
+			    UPDATE RentalEntity r
 			    SET r.status = :status,
 			        r.returnAt = :returnAt
-			    WHERE r.user.userId = :userId
+			    WHERE r.userEntity.userId = :userId
 			      AND r.rentalId = :rentalId
 			""")
 	int updateStatus(

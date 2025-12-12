@@ -8,7 +8,8 @@ import java.util.UUID;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import com.example.demo.model.User;
+import com.example.demo.entity.UserEntity;
+import com.example.demo.model.Role;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -26,9 +27,9 @@ public class JwtUtil {
 	/*
 	 * トークンを生成する
 	 */
-	public String generateToken(User user) {
+	public String generateToken(UserEntity userEntity) {
 		return Jwts.builder()
-				.setSubject(user.getEmail())
+				.setSubject(userEntity.getEmail())
 				.setIssuedAt(new Date())
 				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
 				.signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -74,17 +75,16 @@ public class JwtUtil {
 				.get("role");
 	}
 
-
 	public String generateToken(
 			String username,
 			UUID userId,
-			String roleCode,
+			Role role,
 			Collection<? extends GrantedAuthority> authorities) {
 
 		return Jwts.builder()
 				.setSubject(username)
 				.claim("userId", userId.toString())
-				.claim("roleCode", roleCode.toString())
+				.claim("roleCode", role.toString())
 				.setIssuedAt(new Date())
 				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
 				.signWith(getSigningKey(), SignatureAlgorithm.HS256)

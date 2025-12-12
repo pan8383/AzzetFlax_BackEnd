@@ -1,17 +1,17 @@
-package com.example.demo.model;
+package com.example.demo.entity;
 
-import java.sql.Date;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -21,44 +21,32 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "rentals")
-public class Rental {
-	
+@Table(name = "assets")
+public class AssetEntity {
 	@Id
 	@GeneratedValue
-	@Column(name = "rental_id")
-	private UUID rentalId;
-	
-	@ManyToOne
-	@JoinColumn(name = "asset_id")
-	private Asset asset;
-	
-	@ManyToOne
-	@JoinColumn(name = "unit_id")
-	private AssetUnit assetUnit;
+	@Column(name = "id")
+	private UUID assetId;
+
+	@Column(name = "name")
+	private String name;
 
 	@ManyToOne
-	@JoinColumn(name = "user_id")
-	private User user;
+	@JoinColumn(name = "category_cd")
+	private CategoryEntity categoryEntity;
 
-	@Column(name = "due")
-	private Date due;
+	@Column(name = "model")
+	private String model;
 
-	@Column(name = "return_at", nullable = true)
-	private LocalDateTime returnAt;
-
-	@Enumerated(EnumType.STRING)
-	@Column(name = "status")
-	private RentalStatus status;
-
-	@Column(name = "remarks", nullable = true)
-	private String remarks;
+	@Column(name = "manufacturer")
+	private String manufacturer;
 
 	@Builder.Default
 	@Column(name = "is_deleted")
@@ -71,4 +59,9 @@ public class Rental {
 	@UpdateTimestamp
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
+	
+	@ToString.Exclude
+	@Builder.Default
+	@OneToMany(mappedBy = "assetEntity")
+	private List<AssetUnitEntity> assetUnitEntities = new ArrayList<>();
 }

@@ -1,7 +1,6 @@
-package com.example.demo.model;
+package com.example.demo.entity;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,17 +20,20 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "groups")
-public class Group {
+@Table(name = "location")
+public class LocationEntity {
 	@Id
-	@Column(name = "group_id")
-	private UUID unitId;
-
-	@Column(name = "user_id")
-	private UUID userId;
+	@Column(name = "code")
+	private String locationCode;
 
 	@Column(name = "name")
 	private String name;
+	
+	@Column(name = "parent_code", nullable = true)
+	private String parentCode;
+
+	@Column(name = "sort_order", nullable = true)
+	private Integer sortOrder;
 
 	@Builder.Default
 	@Column(name = "is_deleted")

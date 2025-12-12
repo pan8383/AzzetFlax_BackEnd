@@ -12,21 +12,23 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.config.CustomUserDetails;
-import com.example.demo.dto.request.RentalRegisterRequestDTO;
+import com.example.demo.dto.request.RentalCreateRequestDTO;
 import com.example.demo.dto.request.RentalReturnRequestDTO;
+import com.example.demo.dto.response.PageResponseDTO;
+import com.example.demo.dto.response.RentalCreateResponseDTO;
 import com.example.demo.dto.response.RentalHistoryDetailResponseDTO;
 import com.example.demo.dto.response.RentalHistoryResponseDTO;
-import com.example.demo.dto.response.RentalRegisterResponseDTO;
 import com.example.demo.dto.response.RentalReturnResponseDTO;
+import com.example.demo.entity.AssetUnitEntity;
+import com.example.demo.entity.RentalEntity;
 import com.example.demo.exception.ApiErrorStatus;
-import com.example.demo.model.AssetUnit;
+import com.example.demo.mapper.PageMapper;
 import com.example.demo.model.AssetUnitStatus;
-import com.example.demo.model.Rental;
 import com.example.demo.model.RentalStatus;
 import com.example.demo.repository.AssetUnitRepository;
 import com.example.demo.repository.RentalRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.security.CustomUserDetails;
 
 import lombok.RequiredArgsConstructor;
 
@@ -45,14 +47,14 @@ public class RentalService {
 	 * @return
 	 */
 	@Transactional
-	public List<RentalRegisterResponseDTO> rentals(
-			List<RentalRegisterRequestDTO> requests, CustomUserDetails userDetails) {
+	public List<RentalCreateResponseDTO> rentals(
+			List<RentalCreateRequestDTO> requests, CustomUserDetails userDetails) {
 
 		// レスポンス用結果リストを作成
-		List<RentalRegisterResponseDTO> resultList = new ArrayList<>();
+		List<RentalCreateResponseDTO> resultList = new ArrayList<>();
 
 		// assetの数だけループする
-		for (RentalRegisterRequestDTO request : requests) {
+		for (RentalCreateRequestDTO request : requests) {
 			for (int i = 0; i < request.getQuantity(); i++) {
 				resultList.add(rental(request, userDetails));
 			}
@@ -68,46 +70,56 @@ public class RentalService {
 	 * ３．unitsのステータスを利用中に変更
 	 * ４．rentalsに登録
 	 */
-	private RentalRegisterResponseDTO rental(RentalRegisterRequestDTO request, CustomUserDetails userDetails) {
+	private RentalCreateResponseDTO rental(RentalCreateRequestDTO request, CustomUserDetails userDetails) {
 
 		// 利用可能な１件をロックして取得する
-		Optional<AssetUnit> unitOpt = assetUnitRepository
-				.findFirstByAssetAssetIdAndStatusAndIsDeletedFalseOrderByUnitIdAsc(
+		Optional<AssetUnitEntity> unitOpt = assetUnitRepository
+				.findFirstByAssetEntityAssetIdAndStatusAndIsDeletedFalseOrderByUnitIdAsc(
 						request.getAssetId(),
 						AssetUnitStatus.AVAILABLE);
 
 		// ０件の場合、失敗にする
 		if (unitOpt.isEmpty()) {
-			return buildResponse(null, request.getAssetId(), false, ApiErrorStatus.RENTAL_UNIT_NOT_FOUND.getMessage());
+			return RentalCreateResponseDTO.builder()
+					.rentalId(null)
+					.assetId(request.getAssetId())
+					.success(false)
+					.errorMessage(ApiErrorStatus.RENTAL_UNIT_NOT_FOUND.getMessage())
+					.build();
 		}
 
-		AssetUnit unit = unitOpt.get();
+		AssetUnitEntity unit = unitOpt.get();
 
 		// ユニットを使用中更新する
 		if (assetUnitRepository.updateStatus(unit.getUnitId(), AssetUnitStatus.IN_USE) < 0) {
-			return buildResponse(null, request.getAssetId(), false, ApiErrorStatus.RENTAL_COMMIT_FAILED.getMessage());
+			return RentalCreateResponseDTO.builder()
+					.rentalId(null)
+					.assetId(request.getAssetId())
+					.success(false)
+					.errorMessage(ApiErrorStatus.RENTAL_COMMIT_FAILED.getMessage())
+					.build();
 		}
 
 		// エンティティを作成
-		Rental rental = Rental.builder()
-				.asset(unit.getAsset())
+		RentalEntity rental = RentalEntity.builder()
+				.assetEntity(unit.getAssetEntity())
 				.assetUnit(unit)
-				.user(userRepository.findById(userDetails.getUserId()).orElseThrow())
+				.userEntity(userRepository.findById(userDetails.getUserId()).orElseThrow())
 				.due(request.getDue())
 				.status(RentalStatus.RENTED)
 				.remarks(request.getRemarks())
 				.build();
 
 		// エンティティを登録
-		Rental data = rentalRepository.save(rental);
+		RentalEntity data = rentalRepository.save(rental);
 
 		// レスポス用のデータにエンティティを追加（成功）
-		return buildResponse(data.getRentalId(), data.getAsset().getAssetId(), true, null);
-	}
-
-	// ヘルパー
-	private RentalRegisterResponseDTO buildResponse(UUID rentalId, UUID assetId, boolean success, String errorMessage) {
-		return new RentalRegisterResponseDTO(rentalId, assetId, success, errorMessage);
+		return RentalCreateResponseDTO.builder()
+				.rentalId(data.getRentalId())
+				.assetId(data.getAssetEntity().getAssetId())
+				.success(true)
+				.errorMessage(null)
+				.build();
 	}
 
 	/**
@@ -166,13 +178,17 @@ public class RentalService {
 				.build();
 	}
 
-	public Page<RentalHistoryResponseDTO> getRentalHistories(CustomUserDetails userDetails, Pageable pageable) {
-		Page<Rental> rentalPage = rentalRepository.searchRentalHistories(userDetails.getUserId(), pageable);
-		return rentalPage.map(RentalHistoryResponseDTO::from);
+	public PageResponseDTO<RentalHistoryResponseDTO> getRentalHistories(
+			List<RentalStatus> statuses,
+			CustomUserDetails userDetails,
+			Pageable pageable) {
+		Page<RentalEntity> rentalPage = rentalRepository.searchRentalHistories(statuses, userDetails.getUserId(), pageable);
+		Page<RentalHistoryResponseDTO> page = rentalPage.map(RentalHistoryResponseDTO::from);
+		return PageMapper.toDTO(page);
 	}
 
 	public RentalHistoryDetailResponseDTO getRentalHistoryDetail(CustomUserDetails userDetails, UUID rentalId) {
-		Rental rental = rentalRepository.searchRentalHistoryDetail(userDetails.getUserId(), rentalId);
+		RentalEntity rental = rentalRepository.searchRentalHistoryDetail(userDetails.getUserId(), rentalId);
 		return RentalHistoryDetailResponseDTO.from(rental);
 	}
 }

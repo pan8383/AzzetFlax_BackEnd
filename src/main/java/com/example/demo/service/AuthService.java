@@ -10,11 +10,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.config.CustomUserDetails;
 import com.example.demo.dto.request.AuthRequestDTO;
 import com.example.demo.dto.response.AuthResponseDTO;
-import com.example.demo.exception.ApiErrorStatus;
-import com.example.demo.exception.AuthException;
+import com.example.demo.security.CustomUserDetails;
 import com.example.demo.security.JwtUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -35,7 +33,7 @@ public class AuthService {
 	 */
 	public AuthResponseDTO getUserInfoWithSetToken(AuthRequestDTO request, HttpServletResponse response) {
 
-		// メールとパスワードで認証試行
+		// メールとパスワードで認証試行する
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(
 						request.getEmail(),
@@ -51,7 +49,7 @@ public class AuthService {
 		String token = jwtUtil.generateToken(
 				userDetails.getUsername(),
 				userDetails.getUserId(),
-				userDetails.getRoleCode(),
+				userDetails.getRole(),
 				userDetails.getAuthorities());
 
 		// Cookie にセット
@@ -85,10 +83,7 @@ public class AuthService {
 		response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 	}
 
-	public AuthResponseDTO getValidateUser(CustomUserDetails userDetails) {
-		if (userDetails == null) {
-			throw new AuthException(ApiErrorStatus.UNAUTHORIZED_TOKEN);
-		}
-		return AuthResponseDTO.from(userDetails);
-	}
+	//	public AuthResponseDTO getValidateUser(CustomUserDetails userDetails) {
+	//		return AuthResponseDTO.from(userDetails);
+	//	}
 }

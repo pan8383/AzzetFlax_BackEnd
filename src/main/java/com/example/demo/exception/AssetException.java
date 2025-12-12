@@ -1,12 +1,12 @@
 package com.example.demo.exception;
 
 /**
- * ユーザー認証関連の例外クラス
+ * アセット関連の例外クラス
  */
-public class AuthException extends RuntimeException {
+public class AssetException extends RuntimeException {
 	private final ApiErrorStatus apiErrorStatus;
 
-	public AuthException(ApiErrorStatus apiErrorStatus) {
+	public AssetException(ApiErrorStatus apiErrorStatus) {
 		super(apiErrorStatus.getMessage());
 		this.apiErrorStatus = apiErrorStatus;
 	}

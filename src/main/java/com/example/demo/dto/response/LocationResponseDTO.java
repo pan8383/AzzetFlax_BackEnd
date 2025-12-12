@@ -1,24 +1,22 @@
 package com.example.demo.dto.response;
 
-import com.example.demo.entity.CategoryEntity;
+import com.example.demo.entity.LocationEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class CategoryResponseDTO {
-	private String categoryCode;
+public class LocationResponseDTO {
+	private String locationCode;
 	private String name;
 	private String parentCode;
 	private Integer sortOrder;
 
 	// 静的ファクトリーメソッド
-	public static CategoryResponseDTO from(CategoryEntity e) {
-		return new CategoryResponseDTO(
-				e.getCategoryCode(),
+	public static LocationResponseDTO from(LocationEntity e) {
+		return new LocationResponseDTO(
+				e.getLocationCode(),
 				e.getName(),
 				e.getParentCode(),
 				e.getSortOrder());

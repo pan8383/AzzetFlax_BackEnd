@@ -1,6 +1,5 @@
-package com.example.demo.model;
+package com.example.demo.entity;
 
-import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -9,6 +8,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -16,6 +16,8 @@ import jakarta.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import com.example.demo.model.RentalStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,40 +29,38 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "asset_units")
-public class AssetUnit {
+@Table(name = "rentals")
+public class RentalEntity {
+	
 	@Id
-	@Column(name = "unit_id")
-	private UUID unitId;
-
+	@GeneratedValue
+	@Column(name = "id")
+	private UUID rentalId;
+	
 	@ManyToOne
 	@JoinColumn(name = "asset_id")
-	private Asset asset;
+	private AssetEntity assetEntity;
+	
+	@ManyToOne
+	@JoinColumn(name = "unit_id")
+	private AssetUnitEntity assetUnit;
 
-	@Column(name = "serial_number", nullable = true)
-	private String serialNumber;
+	@ManyToOne
+	@JoinColumn(name = "user_id")
+	private UserEntity userEntity;
+
+	@Column(name = "due")
+	private Date due;
+
+	@Column(name = "return_at", nullable = true)
+	private LocalDateTime returnAt;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")
-	private AssetUnitStatus status;
-
-	@Column(name = "location")
-	private String location;
-
-	@Column(name = "purchase_date")
-	private Date purchaseDate;
-
-	@Column(name = "purchase_price")
-	private BigDecimal purchasePrice;
+	private RentalStatus status;
 
 	@Column(name = "remarks", nullable = true)
 	private String remarks;
-
-	@Column(name = "locked_by", nullable = true)
-	private String lockedBy;
-
-	@Column(name = "locked_at", nullable = true)
-	private LocalDateTime lockedAt;
 
 	@Builder.Default
 	@Column(name = "is_deleted")

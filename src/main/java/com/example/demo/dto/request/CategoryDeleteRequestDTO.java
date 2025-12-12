@@ -5,15 +5,11 @@ import jakarta.validation.constraints.Size;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
-@NoArgsConstructor(force = true)
-public class CategoryRequestDTO {
-	
+public class CategoryDeleteRequestDTO {
 	@NotBlank
-	@Size(max = 50)
-	private final String name;
-
+	@Size(max = 4)
+	private final String categoryCode;
 }

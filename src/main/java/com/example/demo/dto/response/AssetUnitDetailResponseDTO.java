@@ -2,8 +2,9 @@ package com.example.demo.dto.response;
 
 import java.util.UUID;
 
-import com.example.demo.model.Asset;
-import com.example.demo.model.AssetUnit;
+import com.example.demo.entity.AssetEntity;
+import com.example.demo.entity.AssetUnitEntity;
+import com.example.demo.entity.LocationEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,15 +24,18 @@ public class AssetUnitDetailResponseDTO {
 	private String model;
 	private String manufacturer;
 
-	public static AssetUnitDetailResponseDTO from(AssetUnit unit, Asset asset) {
+	public static AssetUnitDetailResponseDTO from(
+			AssetUnitEntity unit,
+			LocationEntity locationEntity,
+			AssetEntity assetEntity) {
 		return new AssetUnitDetailResponseDTO(
 				unit.getUnitId(),
 				unit.getSerialNumber(),
 				unit.getStatus().name(),
-				unit.getLocation(),
-				asset.getAssetId(),
-				asset.getName(),
-				asset.getModel(),
-				asset.getManufacturer());
+				locationEntity.getLocationCode(),
+				assetEntity.getAssetId(),
+				assetEntity.getName(),
+				assetEntity.getModel(),
+				assetEntity.getManufacturer());
 	}
 }

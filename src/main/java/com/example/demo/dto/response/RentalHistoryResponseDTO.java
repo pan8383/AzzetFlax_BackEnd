@@ -4,7 +4,7 @@ import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.example.demo.model.Rental;
+import com.example.demo.entity.RentalEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,12 +23,12 @@ public class RentalHistoryResponseDTO {
 	private String status;
 	private LocalDateTime createdAt;
 
-	public static RentalHistoryResponseDTO from(Rental r) {
+	public static RentalHistoryResponseDTO from(RentalEntity r) {
 		return new RentalHistoryResponseDTO(
 				r.getRentalId(),
-				r.getAsset().getAssetId(),
+				r.getAssetEntity().getAssetId(),
 				r.getAssetUnit().getUnitId(),
-				r.getAsset().getName(),
+				r.getAssetEntity().getName(),
 				r.getDue(),
 				r.getReturnAt(),
 				r.getStatus().name(),

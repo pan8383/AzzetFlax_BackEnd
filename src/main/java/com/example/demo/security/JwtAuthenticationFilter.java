@@ -10,10 +10,10 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.example.demo.config.CustomUserDetails;
 import com.example.demo.service.CustomUserDetailsService;
 
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private final CustomUserDetailsService userDetailsService;
 
 	@Override
-	protected void doFilterInternal(HttpServletRequest request,
+	protected void doFilterInternal(
+			HttpServletRequest request,
 			HttpServletResponse response,
 			FilterChain filterChain)
 			throws ServletException, IOException {
@@ -44,15 +45,38 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		if (token != null && jwtUtil.validateToken(token)) {
 			String username = jwtUtil.extractEmail(token);
-			CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
 
-			UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-					userDetails,
-					null,
-					userDetails.getAuthorities());
-			SecurityContextHolder.getContext().setAuthentication(authToken);
+			try {
+				CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
+				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+						userDetails,
+						null,
+						userDetails.getAuthorities());
+				SecurityContextHolder.getContext().setAuthentication(authToken);
+			} catch (UsernameNotFoundException e) {
+				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				response.setContentType("application/json;charset=UTF-8");
+				response.getWriter().write("""
+						{"status":401,"message":"リクエストは認証されていません"}
+						""");
+				return;
+			}
+
 		}
 
 		filterChain.doFilter(request, response);
+	}
+
+	/**
+	 * JWT 認証を除外するURL
+	 */
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+		String path = request.getServletPath();
+
+		// JWT 認証をスキップするパス
+		return path.startsWith("/api/user/signup")
+				|| path.startsWith("/api/login")
+				|| path.startsWith("/api/logout");
 	}
 }

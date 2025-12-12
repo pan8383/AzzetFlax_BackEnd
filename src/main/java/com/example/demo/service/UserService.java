@@ -3,10 +3,11 @@ package com.example.demo.service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.dto.request.UserRequestDTO;
+import com.example.demo.dto.request.UserCreateRequestDTO;
+import com.example.demo.entity.UserEntity;
 import com.example.demo.exception.ApiErrorStatus;
-import com.example.demo.exception.UsersException;
-import com.example.demo.model.User;
+import com.example.demo.exception.UserException;
+import com.example.demo.model.Role;
 import com.example.demo.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -25,18 +26,19 @@ public class UserService {
 	 * @param request
 	 * @return User
 	 */
-	public User create(UserRequestDTO request) {
+	public UserEntity create(UserCreateRequestDTO request) {
 
+		// emailの重複チェック
 		if (userRepository.existsByEmailAndIsDeletedFalse(request.getEmail())) {
-			throw new UsersException(ApiErrorStatus.EMAIL_ALREADY_EXISTS);
+			throw new UserException(ApiErrorStatus.EMAIL_ALREADY_EXISTS);
 		}
 
-		User user = User.builder()
+		UserEntity userEntity = UserEntity.builder()
 				.name(request.getName())
 				.email(request.getEmail())
 				.password(passwordEncoder.encode(request.getPassword()))
-				.roleCode(request.getRoleCode())
+				.role(Role.R003)
 				.build();
-		return userRepository.save(user);
+		return userRepository.save(userEntity);
 	}
 }

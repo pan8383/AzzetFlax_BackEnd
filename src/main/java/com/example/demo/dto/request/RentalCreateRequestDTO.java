@@ -3,24 +3,24 @@ package com.example.demo.dto.request;
 import java.sql.Date;
 import java.util.UUID;
 
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
-public class RentalRegisterRequestDTO {
-	@NonNull
+public class RentalCreateRequestDTO {
+	@NotBlank
 	private UUID assetId;
-	
-	@NonNull
+
+	@NotBlank
 	private Integer quantity;
-	
-	@NonNull
+
+	@NotBlank
 	private Date due;
-	
-	@NonNull
+
+	@NotNull
 	private String remarks;
 }

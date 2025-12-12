@@ -1,15 +1,16 @@
 package com.example.demo.service;
 
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.dto.request.CategoryRequestDTO;
+import com.example.demo.dto.request.CategoryCreateRequestDTO;
+import com.example.demo.dto.request.CategoryDeleteRequestDTO;
 import com.example.demo.dto.response.CategoryResponseDTO;
+import com.example.demo.entity.CategoryEntity;
 import com.example.demo.exception.ApiErrorStatus;
-import com.example.demo.exception.CategoriesException;
-import com.example.demo.model.Category;
+import com.example.demo.exception.CategoryException;
 import com.example.demo.repository.CategoryRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -35,44 +36,60 @@ public class CategoryService {
 	 * @param request
 	 * @return
 	 */
-	public Category create(CategoryRequestDTO request) {
+	public CategoryEntity create(CategoryCreateRequestDTO request) {
 
-		// isDeleted=trueで同じ名前が存在した場合falseにする
-		Category existing = categoryRepository.findByNameAndIsDeletedTrue(request.getName());
-		if (existing != null) {
-			// 削除フラグを解除
-			existing.setIsDeleted(false);
-			return categoryRepository.save(existing);
-		}
+		// 同じ名前で登録されていた場合、削除フラグを解除する
+		Optional<CategoryEntity> optCategory = categoryRepository.findByName(request.getName());
 
-		// 新規作成
-		Category categories = Category.builder()
-				.name(request.getName())
-				.isDeleted(false)
-				.build();
+		return optCategory.map(category -> {
+			if (category.getIsDeleted()) {
+				category.setIsDeleted(false);
+				return categoryRepository.save(category);
+			} else {
+				throw new CategoryException(ApiErrorStatus.CATEGORY_NAME_ALREADY_EXISTS);
+			}
+		}).orElseGet(() -> {
 
-		try {
-			return categoryRepository.save(categories);
-		} catch (DataIntegrityViolationException ex) {
-			throw new CategoriesException(ApiErrorStatus.CATEGORIES_ALREADY_EXISTS);
-		} catch (Exception ex) {
-			throw new CategoriesException(ApiErrorStatus.CATEGORIES_CREATE_FAILED);
-		}
+			// コードが重複した場合例外を発生
+			if (categoryRepository.existsById(request.getCategoryCode())) {
+				throw new CategoryException(ApiErrorStatus.CATEGORY_CODE_ALREADY_EXISTS);
+			}
+
+			// 新規作成
+			CategoryEntity newCategory = CategoryEntity.builder()
+					.categoryCode(request.getCategoryCode())
+					.name(request.getName())
+					.parentCode(emptyToNull(request.getParentCode()))
+					.sortOrder(nullToZero(request.getSortOrder()))
+					.isDeleted(false)
+					.build();
+			return categoryRepository.save(newCategory);
+		});
 	}
 
 	/**
-	 * カテゴリーを作成するメソッド
+	 * 空文字の場合は null に変換
+	 */
+	private String emptyToNull(String value) {
+		return (value == null || value.isEmpty()) ? null : value;
+	}
+
+	/**
+	 * nullの場合は 0 に変換
+	 */
+	private Integer nullToZero(Integer value) {
+		return value != null ? value : 0;
+	}
+
+	/**
+	 * カテゴリーを削除するメソッド
 	 * @param request
 	 * @return
 	 */
-	public void delete(CategoryRequestDTO request) {
-		Category category = categoryRepository.findById(request.getName())
-				.orElseThrow(() -> new CategoriesException(ApiErrorStatus.CATEGORIES_NOT_FOUND));
+	public void delete(CategoryDeleteRequestDTO request) {
+		CategoryEntity category = categoryRepository.findById(request.getCategoryCode())
+				.orElseThrow(() -> new CategoryException(ApiErrorStatus.CATEGORY_NOT_FOUND));
 		category.setIsDeleted(true);
-		try {
-			categoryRepository.save(category);
-		} catch (Exception e) {
-			throw new CategoriesException(ApiErrorStatus.CATEGORIES_DELETE_FAILED);
-		}
+		categoryRepository.save(category);
 	}
 }

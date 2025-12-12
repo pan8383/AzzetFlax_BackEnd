@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.dto.request.CategoryRequestDTO;
+import com.example.demo.dto.request.CategoryCreateRequestDTO;
+import com.example.demo.dto.request.CategoryDeleteRequestDTO;
 import com.example.demo.dto.response.ApiResponseDTO;
 import com.example.demo.dto.response.CategoryResponseDTO;
 import com.example.demo.service.CategoryService;
@@ -34,13 +35,13 @@ public class CategoryController {
 	}
 	
 	@PostMapping("/register")
-	public ResponseEntity<Void> register(@Valid @RequestBody CategoryRequestDTO request) {
+	public ResponseEntity<Void> register(@Valid @RequestBody CategoryCreateRequestDTO request) {
 		categoriesService.create(request);
 		return ResponseEntity.ok().build();
 	}
 	
 	@PostMapping("/delete")
-	public ResponseEntity<Void> delete(@Valid @RequestBody CategoryRequestDTO request) {
+	public ResponseEntity<Void> delete(@Valid @RequestBody CategoryDeleteRequestDTO request) {
 		categoriesService.delete(request);
 		return ResponseEntity.ok().build();
 	}

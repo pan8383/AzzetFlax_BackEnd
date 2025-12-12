@@ -2,17 +2,19 @@ package com.example.demo.dto.request;
 
 import java.util.UUID;
 
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.NotNull;
+
 import lombok.Getter;
-import lombok.NonNull;
+import lombok.NoArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor
 public class RentalReturnRequestDTO {
-	@NonNull
-	private UUID rentalId;
-	
-	@NonNull
-	private UUID unitId;
+
+    @NotNull
+    private UUID rentalId;
+
+    @NotNull
+    private UUID unitId;
 }
 

@@ -23,57 +23,65 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 public class SecurityConfig {
 
+	// JWT 認証フィルター
 	private final JwtAuthenticationFilter jwtFilter;
 
+	// パスワードエンコーダー
 	@Bean
 	BCryptPasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 
+	// 認証プロバイダ
 	@Bean
 	DaoAuthenticationProvider authenticationProvider(
 			CustomUserDetailsService userDetailsService,
 			BCryptPasswordEncoder passwordEncoder) {
+
 		DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
 		provider.setPasswordEncoder(passwordEncoder);
 		return provider;
 	}
 
+	// 認証処理
 	@Bean
 	AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
 		return authConfig.getAuthenticationManager();
 	}
 
+	// セキュリティ設定全体
 	@Bean
 	SecurityFilterChain securityFilterChain(
 			HttpSecurity http,
 			DaoAuthenticationProvider authenticationProvider) throws Exception {
+
 		http
 				.csrf(csrf -> csrf.disable())
 				.cors(cors -> {
 				})
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/api/login", "/api/logout").permitAll()
+						.requestMatchers("/api/user/signup","/api/login", "/api/logout").permitAll()
 						.anyRequest().authenticated())
 				.sessionManagement(session -> session
 						.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authenticationProvider(authenticationProvider);
 
+		// JWT フィルターを追加
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
 		return http.build();
 	}
 
+	// CORS設定
 	@Bean
 	CorsConfigurationSource corsConfigurationSource() {
-		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowCredentials(true);
-		configuration.addAllowedOrigin("http://localhost:3000");
-		configuration.addAllowedHeader("*");
-		configuration.addAllowedMethod("*");
+		CorsConfiguration config = new CorsConfiguration();
+		config.setAllowCredentials(true);
+		config.addAllowedOrigin("http://localhost:3000");
+		config.addAllowedHeader("*");
+		config.addAllowedMethod("*");
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", configuration);
+		source.registerCorsConfiguration("/**", config);
 		return source;
 	}
 }

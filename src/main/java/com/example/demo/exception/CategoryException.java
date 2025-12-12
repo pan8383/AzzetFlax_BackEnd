@@ -1,17 +1,17 @@
 package com.example.demo.exception;
 
 /**
- * アセット関連の例外クラス
+ * カテゴリー関連の例外クラス
  */
-public class AssetsException extends RuntimeException {
+public class CategoryException extends RuntimeException {
 	private final ApiErrorStatus apiErrorStatus;
 
-	public AssetsException(ApiErrorStatus apiErrorStatus) {
+	public CategoryException(ApiErrorStatus apiErrorStatus) {
 		super(apiErrorStatus.getMessage());
 		this.apiErrorStatus = apiErrorStatus;
 	}
 
 	public ApiErrorStatus getApiErrorStatus() {
-		return apiErrorStatus;
+	    return apiErrorStatus;
 	}
 }
