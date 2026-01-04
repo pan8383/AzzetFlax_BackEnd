@@ -1,7 +1,6 @@
 package com.example.demo.entity;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,7 +20,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Data
 @Entity
@@ -59,9 +57,7 @@ public class AssetEntity {
 	@UpdateTimestamp
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
-	
-	@ToString.Exclude
-	@Builder.Default
+
 	@OneToMany(mappedBy = "assetEntity")
-	private List<AssetUnitEntity> assetUnitEntities = new ArrayList<>();
+	private List<AssetUnitEntity> assetUnitEntities;
 }

@@ -1,37 +1,23 @@
 package com.example.demo.dto.response;
 
-import java.sql.Date;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
-import com.example.demo.entity.RentalEntity;
+import com.example.demo.model.RentalStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class RentalHistoryResponseDTO {
+public class RentalAssetsListResponseDTO {
 	private UUID rentalId;
-	private UUID assetId;
-	private UUID unitId;
-	private String name;
-	private Date due;
-	private LocalDateTime returnAt;
-	private String status;
-	private LocalDateTime createdAt;
-
-	public static RentalHistoryResponseDTO from(RentalEntity r) {
-		return new RentalHistoryResponseDTO(
-				r.getRentalId(),
-				r.getAssetEntity().getAssetId(),
-				r.getAssetUnit().getUnitId(),
-				r.getAssetEntity().getName(),
-				r.getDue(),
-				r.getReturnAt(),
-				r.getStatus().name(),
-				r.getCreatedAt());
-	}
+	private UUID userId;
+	private LocalDate rentalDate;
+	private LocalDate expectedReturnDate;
+	private LocalDate actualReturnDate;
+	private RentalStatus status;
+	private String remarks;
+	private List<RentalUnitResponseDTO> units;
 }

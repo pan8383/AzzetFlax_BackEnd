@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.UUID;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
@@ -14,25 +13,24 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class AssetUnitCreateRequestDTO {
-	@NotNull
-	private UUID assetId;
+public class AssetUnitUpdateRequestDTO {
 
-	@NotBlank
+	@NotNull
+	private UUID unitId;
+
 	@Size(max = 100)
-	private final String serialNumber;
+	private String serialNumber;
 
-	@NotBlank
-	@Size(max = 100)
-	private final String locationCode;
+	private String status;
 
-	@NotNull
-	private final Date purchaseDate;
+	@Size(max = 4)
+	private String locationCode;
 
-	@NotNull
+	private Date purchaseDate;
+
 	@PositiveOrZero
-	private final BigDecimal purchasePrice;
+	private BigDecimal purchasePrice;
 
 	@Size(max = 500)
-	private final String remarks;
+	private String remarks;
 }

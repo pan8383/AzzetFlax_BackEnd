@@ -13,14 +13,14 @@ import com.example.demo.security.CustomUserDetails;
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
 	private final UserRepository userRepository;
 
 	@Override
-	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+	public UserDetails loadUserByUsername(String email) {
 		UserEntity userEntity = userRepository.findByEmailAndIsDeletedFalse(email)
 				.orElseThrow(() -> new UsernameNotFoundException("ユーザーが見つかりません: " + email));
 
@@ -33,5 +33,4 @@ public class CustomUserDetailsService implements UserDetailsService {
 				Collections.emptyList(),
 				true);
 	}
-
 }

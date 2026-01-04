@@ -15,7 +15,7 @@ public enum ApiErrorStatus {
 	 */
 	INVALID_CREDENTIALS(
 		"メールアドレスまたはパスワードが正しくありません",
-		HttpStatus.BAD_REQUEST
+		HttpStatus.UNAUTHORIZED
 	),
 	AUTHENTICATION_REQUIRED(
 		"認証が必要です",
@@ -51,9 +51,17 @@ public enum ApiErrorStatus {
 		"アセットが見つかりません",
 		HttpStatus.NOT_FOUND
 	),
+	ASSET_NAME_ALREADY_EXISTS(
+		"このアセットの名前は既に使用されています",
+		HttpStatus.CONFLICT
+	),
 	ASSET_STATUS_UPDATE_FAILED(
 		"アセットの状態更新に失敗しました",
 		HttpStatus.CONFLICT
+	),
+	ASSET_UNIT_NOT_FOUND(
+		"ユニットが見つかりません",
+		HttpStatus.NOT_FOUND
 	),
 	ASSET_UNIT_NOT_AVAILABLE(
 		"利用可能なアセットユニットがありません",

@@ -1,10 +1,11 @@
 package com.example.demo.dto.request;
 
-import java.sql.Date;
-import java.util.UUID;
+import java.time.LocalDate;
+import java.util.List;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
+import org.springframework.format.annotation.DateTimeFormat;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,15 +13,12 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class RentalCreateRequestDTO {
-	@NotBlank
-	private UUID assetId;
 
-	@NotBlank
-	private Integer quantity;
+	@NotNull(message = "返却予定日は必須です")
+	@DateTimeFormat(pattern = "yyyy-MM-dd")
+	private LocalDate expectedReturnDate;
 
-	@NotBlank
-	private Date due;
-
-	@NotNull
 	private String remarks;
+
+	private List<RentalUnitRequestDTO> assets;
 }

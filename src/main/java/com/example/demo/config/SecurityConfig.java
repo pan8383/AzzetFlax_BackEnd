@@ -1,5 +1,7 @@
 package com.example.demo.config;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -60,11 +62,50 @@ public class SecurityConfig {
 				.cors(cors -> {
 				})
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/api/user/signup","/api/login", "/api/logout").permitAll()
+						.requestMatchers(
+								"/api/auth/signup",
+								"/api/auth/login",
+								"/api/auth/logout",
+								"/api/auth/refresh")
+						.permitAll()
 						.anyRequest().authenticated())
 				.sessionManagement(session -> session
 						.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authenticationProvider(authenticationProvider);
+				.authenticationProvider(authenticationProvider)
+				.exceptionHandling(ex -> ex
+						// 未認証は 401 を返す（ログインしていない・JWTなし・期限切れ）
+						.authenticationEntryPoint((request, response, authException) -> {
+							response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+							response.setContentType("application/json;charset=UTF-8");
+							response.getWriter().write("""
+									  {
+									    "success": false,
+									    "data": null,
+									    "error": {
+									      "code": "UNAUTHORIZED",
+									      "message": "認証が必要です",
+									      "status": 401
+									    }
+									  }
+									""");
+						})
+
+						// 認可エラーは 403 を返す（ログイン済だが権限不足）
+						.accessDeniedHandler((request, response, accessDeniedException) -> {
+							response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+							response.setContentType("application/json;charset=UTF-8");
+							response.getWriter().write("""
+									  {
+									    "success": false,
+									    "data": null,
+									    "error": {
+									      "code": "FORBIDDEN",
+									      "message": "権限がありません",
+									      "status": 403
+									    }
+									  }
+									""");
+						}));
 
 		// JWT フィルターを追加
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

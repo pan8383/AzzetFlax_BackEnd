@@ -44,7 +44,7 @@ public class UserEntity {
 	private String password;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "role_cd")
+	@Column(name = "role")
 	private Role role;
 
 	@Builder.Default

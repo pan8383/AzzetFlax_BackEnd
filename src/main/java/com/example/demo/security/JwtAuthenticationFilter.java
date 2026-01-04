@@ -4,13 +4,11 @@ import java.io.IOException;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -18,6 +16,10 @@ import com.example.demo.service.CustomUserDetailsService;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 毎リクエストごとに Cookie のアクセストークンを検証して、
+ * ログイン済みユーザーとして認証情報をセットする
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -32,51 +34,45 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			FilterChain filterChain)
 			throws ServletException, IOException {
 
-		String token = null;
+		String accessToken = null;
 
-		// Cookie から token を取得
+		// Cookie から access_token を取得
 		if (request.getCookies() != null) {
-			for (Cookie cookie : request.getCookies()) {
-				if ("token".equals(cookie.getName())) {
-					token = cookie.getValue();
+			for (var cookie : request.getCookies()) {
+				if ("access_token".equals(cookie.getName())) {
+					accessToken = cookie.getValue();
+					break;
 				}
 			}
 		}
 
-		if (token != null && jwtUtil.validateToken(token)) {
-			String username = jwtUtil.extractEmail(token);
+		// トークンがあり、未認証の場合のみ処理
+		if (accessToken != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-			try {
-				CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
-				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+			if (jwtUtil.validateAccessToken(accessToken)) {
+				String email = jwtUtil.extractEmail(accessToken);
+
+				CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(email);
+
+				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
 						userDetails,
 						null,
 						userDetails.getAuthorities());
-				SecurityContextHolder.getContext().setAuthentication(authToken);
-			} catch (UsernameNotFoundException e) {
-				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.setContentType("application/json;charset=UTF-8");
-				response.getWriter().write("""
-						{"status":401,"message":"リクエストは認証されていません"}
-						""");
-				return;
-			}
 
+				SecurityContextHolder.getContext().setAuthentication(authentication);
+			}
 		}
 
 		filterChain.doFilter(request, response);
 	}
 
-	/**
-	 * JWT 認証を除外するURL
-	 */
 	@Override
-	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+	protected boolean shouldNotFilter(HttpServletRequest request) {
 		String path = request.getServletPath();
 
-		// JWT 認証をスキップするパス
-		return path.startsWith("/api/user/signup")
-				|| path.startsWith("/api/login")
-				|| path.startsWith("/api/logout");
+		return path.startsWith("/api/auth/login")
+				|| path.startsWith("/api/auth/logout")
+				|| path.startsWith("/api/auth/refresh")
+				|| path.startsWith("/api/auth/signup");
 	}
 }

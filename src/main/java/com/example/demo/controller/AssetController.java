@@ -1,10 +1,16 @@
 package com.example.demo.controller;
 
+import java.util.List;
+import java.util.UUID;
+
 import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,8 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dto.request.AssetCreateRequestDTO;
 import com.example.demo.dto.request.AssetUnitCreateRequestDTO;
+import com.example.demo.dto.request.AssetUnitUpdateRequestDTO;
+import com.example.demo.dto.request.AssetUpdateRequestDTO;
 import com.example.demo.dto.response.ApiResponseDTO;
 import com.example.demo.dto.response.AssetResponseDTO;
+import com.example.demo.dto.response.AssetUnitDetailResponseDTO;
 import com.example.demo.dto.response.PageResponseDTO;
 import com.example.demo.service.AssetService;
 
@@ -27,14 +36,16 @@ public class AssetController {
 
 	private final AssetService assetsService;
 
+	// ==================================================
+	//
+	// assets
+	//
+	// ==================================================
+
 	/**
-	 * Assetをページャーで取得する
-	 * @param search
-	 * @param categoryCode
-	 * @param pageable
-	 * @return
+	 * GET Assetをページャーで取得する
 	 */
-	@GetMapping("/get")
+	@GetMapping
 	public ResponseEntity<PageResponseDTO<AssetResponseDTO>> getAssets(
 			@RequestParam(required = false, defaultValue = "") String search,
 			@RequestParam(required = false, defaultValue = "") String categoryCode,
@@ -44,11 +55,9 @@ public class AssetController {
 	}
 
 	/**
-	 * Assetを登録する
-	 * @param request
-	 * @return
+	 * POST Assetを登録する
 	 */
-	@PostMapping("/register")
+	@PostMapping
 	public ResponseEntity<ApiResponseDTO<Void>> createAsset(
 			@Valid @RequestBody AssetCreateRequestDTO request) {
 		assetsService.createAsset(request);
@@ -56,14 +65,64 @@ public class AssetController {
 	}
 
 	/**
-	 * AssetUnitを登録する
-	 * @param request
-	 * @return
+	 * PATCH Assetを部分更新する
 	 */
-	@PostMapping("/register-unit")
+	@PatchMapping
+	public ResponseEntity<ApiResponseDTO<Void>> updateAsset(@Valid @RequestBody AssetUpdateRequestDTO request) {
+		assetsService.updateAsset(request);
+		return ResponseEntity.ok().build();
+	}
+
+	/**
+	 * DELETE Assetを削除する
+	 */
+	@DeleteMapping("/{assetId}")
+	public ResponseEntity<ApiResponseDTO<Void>> deleteAsset(@PathVariable UUID assetId) {
+		assetsService.deleteAsset(assetId);
+		return ResponseEntity.ok().build();
+	}
+
+	// ==================================================
+	//
+	// units
+	//
+	// ==================================================
+	/**
+	 * GET AssetUnitを取得する
+	 */
+	@GetMapping("/{assetId}/units")
+	public ResponseEntity<ApiResponseDTO<List<AssetUnitDetailResponseDTO>>> getAssetUnits(
+			@PathVariable UUID assetId) {
+		ApiResponseDTO<List<AssetUnitDetailResponseDTO>> response = assetsService.getAssetUnits(assetId);
+		return ResponseEntity.ok(response);
+	}
+
+	/**
+	 * POST AssetUnitを登録する
+	 */
+	@PostMapping("/{assetId}/units")
 	public ResponseEntity<ApiResponseDTO<Void>> createUnit(
+			@PathVariable UUID assetId,
 			@Valid @RequestBody AssetUnitCreateRequestDTO request) {
 		assetsService.createUnit(request);
 		return ResponseEntity.ok(ApiResponseDTO.success(null));
+	}
+
+	/**
+	 * PATCH AssetUnitを部分更新する
+	 */
+	@PatchMapping("/units")
+	public ResponseEntity<ApiResponseDTO<Void>> updateUnit(@Valid @RequestBody AssetUnitUpdateRequestDTO request) {
+		assetsService.updateUnit(request);
+		return ResponseEntity.ok().build();
+	}
+
+	/**
+	 * PATCH AssetUnitを削除する
+	 */
+	@DeleteMapping("/units/{unitId}")
+	public ResponseEntity<ApiResponseDTO<Void>> deleteUnit(@PathVariable UUID unitId) {
+		assetsService.deleteUnit(unitId);
+		return ResponseEntity.ok().build();
 	}
 }

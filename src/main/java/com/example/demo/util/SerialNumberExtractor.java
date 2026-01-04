@@ -9,11 +9,7 @@ public class SerialNumberExtractor {
 	private static final Pattern SERIAL_PATTERN = Pattern.compile("\\(serial_number\\)=\\((.*?)\\)");
 
 	/**
-	 * エラーメッセージなどから serial_number を抽出する
-	 * 例: "Key (serial_number)=(デスクトップPC-010)"
-	 *
-	 * @param message 元メッセージ
-	 * @return 抽出したシリアル番号 or "不明"
+	 * エラーメッセージから serial_number を抽出する
 	 */
 	public static String extract(String message) {
 		if (message == null)

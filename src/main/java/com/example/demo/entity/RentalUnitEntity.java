@@ -1,66 +1,60 @@
 package com.example.demo.entity;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.example.demo.model.RentalStatus;
+import com.example.demo.model.RentalUnitStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
-@Entity
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "rentals")
-public class RentalEntity {
+@Builder
+@Entity
+@Table(name = "rental_units")
+public class RentalUnitEntity {
 
 	@Id
-	@GeneratedValue(generator = "UUID")
+	@GeneratedValue
 	@Column(name = "id")
-	private UUID rentalId;
+	private UUID rentalUnitId;
 
 	@ManyToOne
-	@JoinColumn(name = "user_id")
-	private UserEntity userEntity;
+	@JoinColumn(name = "rental_id")
+	private RentalEntity rentalEntity;
 
-	@Column(name = "rental_date")
-	private LocalDate rentalDate;
-
-	@Column(name = "expected_return_date")
-	private LocalDate expectedReturnDate;
-
-	@Column(name = "actual_return_date", nullable = true)
-	private LocalDate actualReturnDate;
+	@ManyToOne
+	@JoinColumn(name = "unit_id")
+	private AssetUnitEntity assetUnitEntity;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "status")
-	private RentalStatus status;
+	@Column(name = "rental_status")
+	private RentalUnitStatus rentalUnitStatus;
 
-	@Column(name = "remarks", nullable = true)
-	private String remarks;
+	@Column(name = "rented_at")
+	private LocalDateTime rentedAt;
 
+	@Column(name = "returned_at", nullable = true)
+	private LocalDateTime returnedAt;
 	@Builder.Default
 	@Column(name = "is_deleted")
 	private Boolean isDeleted = false;
@@ -72,7 +66,4 @@ public class RentalEntity {
 	@UpdateTimestamp
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
-
-	@OneToMany(mappedBy = "rentalEntity", fetch = FetchType.LAZY)
-	private List<RentalUnitEntity> rentalUnits = new ArrayList<>();
 }

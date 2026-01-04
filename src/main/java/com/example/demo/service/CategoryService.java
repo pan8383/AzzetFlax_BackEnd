@@ -21,7 +21,7 @@ public class CategoryService {
 	private final CategoryRepository categoryRepository;
 
 	/**
-	 * カテゴリーを取得するメソッド
+	 * カテゴリーを取得する
 	 * @return
 	 */
 	public List<CategoryResponseDTO> getCategories() {
@@ -32,7 +32,7 @@ public class CategoryService {
 	}
 
 	/**
-	 * カテゴリーを作成するメソッド
+	 * カテゴリーを作成する
 	 * @param request
 	 * @return
 	 */
@@ -82,7 +82,7 @@ public class CategoryService {
 	}
 
 	/**
-	 * カテゴリーを削除するメソッド
+	 * カテゴリーを削除する
 	 * @param request
 	 * @return
 	 */

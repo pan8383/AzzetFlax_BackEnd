@@ -1,7 +1,9 @@
 package com.example.demo.dto.request;
 
+import java.util.List;
 import java.util.UUID;
 
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import lombok.Getter;
@@ -11,10 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RentalReturnRequestDTO {
 
-    @NotNull
-    private UUID rentalId;
+	@NotNull
+	private UUID rentalId;
 
-    @NotNull
-    private UUID unitId;
+	@NotEmpty
+	private List<@NotNull UUID> rentalUnitIds;
 }
-

@@ -1,48 +1,70 @@
 package com.example.demo.security;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.util.Collection;
 import java.util.Date;
 import java.util.UUID;
 
-import org.springframework.security.core.GrantedAuthority;
+import jakarta.annotation.PostConstruct;
+
 import org.springframework.stereotype.Component;
 
-import com.example.demo.entity.UserEntity;
+import com.example.demo.config.JwtProperties;
 import com.example.demo.model.Role;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class JwtUtil {
-	private final String SECRET_KEY = "aB3dE5gH7jK9mN1pQ2rS4tV6wX8yZ0!@#";
-	private final long EXPIRATION_TIME = 1000 * 60 * 60; // 1時間
 
-	private Key getSigningKey() {
-		return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+	private final JwtProperties jwtProperties;
+	private Key signingKey;
+
+	@PostConstruct
+	private void init() {
+		this.signingKey = Keys.hmacShaKeyFor(
+				jwtProperties.getSecretKey().getBytes(StandardCharsets.UTF_8));
 	}
 
 	/*
-	 * トークンを生成する
+	 * アクセストークンを生成する
 	 */
-	public String generateToken(UserEntity userEntity) {
+	public String generateAccessToken(String username, UUID userId, Role role) {
 		return Jwts.builder()
-				.setSubject(userEntity.getEmail())
+				.setSubject(username)
+				.claim("userId", userId.toString())
+				.claim("role", role.toString())
+				.claim("tokenType", "ACCESS")
 				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-				.signWith(getSigningKey(), SignatureAlgorithm.HS256)
+				.setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiration()))
+				.signWith(signingKey, SignatureAlgorithm.HS256)
 				.compact();
 	}
 
 	/*
-	 * トークンの署名と有効期限を検証する
+	 * リフレッシュトークンを生成する
 	 */
-	public boolean validateToken(String token) {
+	public String generateRefreshToken(UUID userId) {
+		return Jwts.builder()
+				.setSubject(userId.toString())
+				.claim("tokenType", "REFRESH")
+				.setIssuedAt(new Date())
+				.setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiration()))
+				.signWith(signingKey, SignatureAlgorithm.HS256)
+				.compact();
+	}
+
+	/*
+	 * アクセストークンの署名と有効期限を検証する
+	 */
+	public boolean validateAccessToken(String token) {
 		try {
 			Jwts.parserBuilder()
-					.setSigningKey(getSigningKey())
+					.setSigningKey(signingKey)
 					.build()
 					.parseClaimsJws(token);
 			return true;
@@ -56,7 +78,7 @@ public class JwtUtil {
 	 */
 	public String extractEmail(String token) {
 		return Jwts.parserBuilder()
-				.setSigningKey(getSigningKey())
+				.setSigningKey(signingKey)
 				.build()
 				.parseClaimsJws(token)
 				.getBody()
@@ -68,26 +90,48 @@ public class JwtUtil {
 	 */
 	public String extractRole(String token) {
 		return (String) Jwts.parserBuilder()
-				.setSigningKey(getSigningKey())
+				.setSigningKey(signingKey)
 				.build()
 				.parseClaimsJws(token)
 				.getBody()
 				.get("role");
 	}
 
-	public String generateToken(
-			String username,
-			UUID userId,
-			Role role,
-			Collection<? extends GrantedAuthority> authorities) {
+	/**
+	 * リフレッシュトークンの検証
+	 * @param refreshToken
+	 * @return
+	 */
+	public boolean validateRefreshToken(String refreshToken) {
+		try {
+			var claims = Jwts.parserBuilder()
+					.setSigningKey(signingKey)
+					.build()
+					.parseClaimsJws(refreshToken)
+					.getBody();
 
-		return Jwts.builder()
-				.setSubject(username)
-				.claim("userId", userId.toString())
-				.claim("roleCode", role.toString())
-				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-				.signWith(getSigningKey(), SignatureAlgorithm.HS256)
-				.compact();
+			// tokenType が REFRESH か確認
+			String tokenType = claims.get("tokenType", String.class);
+			return "REFRESH".equals(tokenType);
+
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	/**
+	 * リフレッシュトークンからユーザーIDを取得
+	 * @param refreshToken
+	 * @return
+	 */
+	public UUID extractUserIdFromRefreshToken(String refreshToken) {
+		String userId = Jwts.parserBuilder()
+				.setSigningKey(signingKey)
+				.build()
+				.parseClaimsJws(refreshToken)
+				.getBody()
+				.getSubject();
+
+		return UUID.fromString(userId);
 	}
 }

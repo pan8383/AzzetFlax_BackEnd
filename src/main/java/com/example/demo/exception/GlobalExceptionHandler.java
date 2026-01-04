@@ -56,8 +56,8 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(BadCredentialsException.class)
 	public ResponseEntity<ApiResponseDTO<Void>> handleBadCredentials(BadCredentialsException ex) {
 		return ResponseEntity
-				.status(ApiErrorStatus.AUTHENTICATION_REQUIRED.getHttpStatus())
-				.body(ApiErrorStatus.AUTHENTICATION_REQUIRED.toResponse());
+				.status(ApiErrorStatus.INVALID_CREDENTIALS.getHttpStatus())
+				.body(ApiErrorStatus.INVALID_CREDENTIALS.toResponse());
 	}
 
 	/**

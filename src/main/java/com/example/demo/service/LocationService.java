@@ -21,7 +21,7 @@ public class LocationService {
 	private final LocationRepository locationRepository;
 
 	/**
-	 * ロケーションを取得するメソッド
+	 * ロケーションを取得する
 	 * @return
 	 */
 	public List<LocationResponseDTO> getLocations() {
@@ -32,7 +32,7 @@ public class LocationService {
 	}
 
 	/**
-	 * ロケーションを作成するメソッド
+	 * ロケーションを作成する
 	 * @param request
 	 * @return
 	 */
@@ -82,7 +82,7 @@ public class LocationService {
 	}
 
 	/**
-	 * ロケーションを削除するメソッド
+	 * ロケーションを削除する
 	 * @param request
 	 * @return
 	 */

@@ -2,15 +2,16 @@ package com.example.demo.dto.response;
 
 import java.util.UUID;
 
+import com.example.demo.model.RentalStatus;
+
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 
-@Builder
 @Getter
 @AllArgsConstructor
 public class RentalReturnResponseDTO {
 	private UUID rentalId;
-	private boolean success;
-	private String errorMessage;
+	private RentalStatus status;
+	private int returnedUnitCount;
+	private int totalUnitCount;
 }

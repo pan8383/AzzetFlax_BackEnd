@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import java.util.UUID;
+
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.http.HttpHeaders;
@@ -11,7 +13,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.dto.request.AuthRequestDTO;
+import com.example.demo.dto.response.AuthLoginResponseDTO;
 import com.example.demo.dto.response.AuthResponseDTO;
+import com.example.demo.entity.UserEntity;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.security.CustomUserDetails;
 import com.example.demo.security.JwtUtil;
 
@@ -23,6 +28,7 @@ public class AuthService {
 
 	private final JwtUtil jwtUtil;
 	private final AuthenticationManager authenticationManager;
+	private final UserRepository userRepository;
 
 	/**
 	 * ユーザー情報をレスポンスボディにセットし、
@@ -31,59 +37,118 @@ public class AuthService {
 	 * @param response
 	 * @return
 	 */
-	public AuthResponseDTO getUserInfoWithSetToken(AuthRequestDTO request, HttpServletResponse response) {
+	public AuthLoginResponseDTO login(AuthRequestDTO request, HttpServletResponse response) {
 
-		// メールとパスワードで認証試行する
+		// 認証
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(
 						request.getEmail(),
 						request.getPassword()));
 
-		// 認証成功 → SecurityContext に保存
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 
-		// CustomUserDetails を取得
 		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-		// JWTトークン生成（CustomUserDetailsの情報で）
-		String token = jwtUtil.generateToken(
+		// アクセストークンを生成
+		String accessToken = jwtUtil.generateAccessToken(
 				userDetails.getUsername(),
 				userDetails.getUserId(),
-				userDetails.getRole(),
-				userDetails.getAuthorities());
+				userDetails.getRole());
 
-		// Cookie にセット
-		ResponseCookie cookie = ResponseCookie.from("token", token)
+		// リフレッシュトークン
+		String refreshToken = jwtUtil.generateRefreshToken(userDetails.getUserId());
+
+		// access_token Cookie（短命）
+		ResponseCookie accessCookie = ResponseCookie.from("access_token", accessToken)
 				.httpOnly(true)
-				.secure(false) // 本番は true（HTTPS）
-				.sameSite("Lax") // 本番は Strict or Lax
+				.secure(false) // 本番 true
+				.sameSite("Lax")
 				.path("/")
-				.maxAge(60 * 60)
+				.maxAge(60 * 60) // 60分
 				.build();
 
-		response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+		// refresh_token Cookie（長命）
+		ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
+				.httpOnly(true)
+				.secure(false) // 本番 true
+				.sameSite("Lax")
+				.path("/api/auth")
+				.maxAge(7 * 24 * 60 * 60) // 7日
+				.build();
 
-		// レスポンス返却
-		return AuthResponseDTO.from(userDetails);
+		response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+		response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+		// レスポンスはユーザー情報だけ
+		return AuthLoginResponseDTO.from(userDetails);
 	}
 
 	/**
 	 * Cookieのトークンを削除します
 	 * @param response
 	 */
-	public void deleteCookieToken(HttpServletResponse response) {
-		// JWTやセッションCookieを削除する
-		ResponseCookie cookie = ResponseCookie.from("token", "")
+	public void logout(HttpServletResponse response) {
+		// access_token 削除
+		ResponseCookie deleteAccessCookie = ResponseCookie.from("access_token", "")
 				.httpOnly(true)
 				.secure(false)
 				.sameSite("Lax")
 				.path("/")
 				.maxAge(0)
 				.build();
-		response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+		// refresh_token 削除
+		ResponseCookie deleteRefreshCookie = ResponseCookie.from("refresh_token", "")
+				.httpOnly(true)
+				.secure(false)
+				.sameSite("Lax")
+				.path("/api/auth")
+				.maxAge(0)
+				.build();
+
+		response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString());
+		response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
 	}
 
-	//	public AuthResponseDTO getValidateUser(CustomUserDetails userDetails) {
-	//		return AuthResponseDTO.from(userDetails);
-	//	}
+	public AuthResponseDTO getCurrentUser(CustomUserDetails userDetails) {
+		return AuthResponseDTO.from(userDetails);
+	}
+
+	/**
+	 * アクセストークンを再発行
+	 * @param refreshToken
+	 * @return
+	 */
+	public void refreshAccessToken(HttpServletResponse response, String refreshToken) {
+
+		// リフレッシュトークン検証
+		if (!jwtUtil.validateRefreshToken(refreshToken)) {
+			throw new RuntimeException("Invalid refresh token");
+		}
+
+		// ユーザーID取得
+		UUID userId = jwtUtil.extractUserIdFromRefreshToken(refreshToken);
+
+		// ユーザー取得
+		UserEntity user = userRepository.findById(userId)
+				.orElseThrow(() -> new RuntimeException("User not found"));
+
+		// 新しいアクセストークン生成
+		String accessToken = jwtUtil.generateAccessToken(
+				user.getEmail(),
+				user.getUserId(),
+				user.getRole());
+
+		// Cookie にセット
+		ResponseCookie accessCookie = ResponseCookie.from("access_token", accessToken)
+				.httpOnly(true)
+				.secure(false) // 本番は true
+				.sameSite("Lax")
+				.path("/")
+				.maxAge(60 * 10) // 10分
+				.build();
+
+		response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+	}
+
 }

@@ -16,7 +16,7 @@ import lombok.ToString;
 public class UserCreateRequestDTO {
 
 	@NotBlank
-	@Size(max = 50)
+	@Size(min = 5, max = 50)
 	private final String name;
 
 	@NotBlank
@@ -25,6 +25,10 @@ public class UserCreateRequestDTO {
 	private final String email;
 
 	@NotBlank
-	@Size(min = 8, max = 100)
+	@Size(min = 8, max = 50)
 	private final String password;
+
+	@NotBlank
+	@Size(max = 10)
+	private final String role;
 }

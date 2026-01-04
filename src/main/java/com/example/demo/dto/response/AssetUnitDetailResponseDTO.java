@@ -1,9 +1,13 @@
 package com.example.demo.dto.response;
 
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.UUID;
 
-import com.example.demo.model.Asset;
-import com.example.demo.model.AssetUnit;
+import com.example.demo.entity.AssetEntity;
+import com.example.demo.entity.AssetUnitEntity;
+import com.example.demo.entity.LocationEntity;
+import com.example.demo.model.UnitStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,23 +19,39 @@ import lombok.NoArgsConstructor;
 public class AssetUnitDetailResponseDTO {
 	private UUID unitId;
 	private String serialNumber;
-	private String status;
+	private UnitStatus status;
+	private Date purchaseDate;
+	private BigDecimal purchasePrice;
+	private String remarks;
+
 	private String locationCode;
+	private String locationName;
 
 	private UUID assetId;
 	private String name;
+	private String categoryCode;
+	private String categoryName;
 	private String model;
 	private String manufacturer;
 
-	public static AssetUnitDetailResponseDTO from(AssetUnit unit, Asset asset) {
+	public static AssetUnitDetailResponseDTO from(
+			AssetUnitEntity unit,
+			LocationEntity locationEntity,
+			AssetEntity assetEntity) {
 		return new AssetUnitDetailResponseDTO(
 				unit.getUnitId(),
 				unit.getSerialNumber(),
-				unit.getStatus().name(),
-				unit.getLocation(),
-				asset.getAssetId(),
-				asset.getName(),
-				asset.getModel(),
-				asset.getManufacturer());
+				unit.getStatus(),
+				unit.getPurchaseDate(),
+				unit.getPurchasePrice(),
+				unit.getRemarks(),
+				locationEntity.getLocationCode(),
+				locationEntity.getName(),
+				assetEntity.getAssetId(),
+				assetEntity.getName(),
+				assetEntity.getCategoryEntity().getCategoryCode(),
+				assetEntity.getCategoryEntity().getName(),
+				assetEntity.getModel(),
+				assetEntity.getManufacturer());
 	}
 }

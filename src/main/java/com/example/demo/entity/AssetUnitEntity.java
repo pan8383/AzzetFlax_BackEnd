@@ -3,6 +3,7 @@ package com.example.demo.entity;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -13,12 +14,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.example.demo.model.AssetUnitStatus;
+import com.example.demo.model.UnitStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,7 +48,7 @@ public class AssetUnitEntity {
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")
-	private AssetUnitStatus status;
+	private UnitStatus status;
 
 	@ManyToOne
 	@JoinColumn(name = "location_cd")
@@ -63,7 +65,7 @@ public class AssetUnitEntity {
 
 	@Builder.Default
 	@Column(name = "is_deleted")
-	private Boolean isDeleted = false;
+	private boolean isDeleted = false;
 
 	@CreationTimestamp
 	@Column(name = "created_at")
@@ -72,4 +74,24 @@ public class AssetUnitEntity {
 	@UpdateTimestamp
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
+
+	@OneToMany(mappedBy = "assetUnitEntity")
+	private List<RentalUnitEntity> rentalUnitEntities;
+
+	/**
+	 * 廃棄・削除を行う
+	 * ステータスを DISPOSED にし、論理削除フラグを true にする
+	 */
+	public void dispose() {
+		this.status = UnitStatus.DISPOSED;
+		this.isDeleted = true;
+	}
+
+	/**
+	 * 復帰させる（削除フラグを false にし、ステータスを AVAILABLE に戻す）
+	 */
+	public void restore() {
+		this.status = UnitStatus.AVAILABLE;
+		this.isDeleted = false;
+	}
 }

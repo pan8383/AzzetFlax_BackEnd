@@ -3,7 +3,7 @@ package com.example.demo.dto.response;
 import java.util.UUID;
 
 import com.example.demo.entity.AssetEntity;
-import com.example.demo.model.AssetUnitStatus;
+import com.example.demo.model.UnitStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,21 +26,15 @@ public class AssetResponseDTO {
 	private Long availableStock;
 
 	public static AssetResponseDTO from(AssetEntity asset) {
-		return AssetResponseDTO.builder()
-				.assetId(asset.getAssetId())
-				.name(asset.getName())
+		return AssetResponseDTO.builder().assetId(asset.getAssetId()).name(asset.getName())
 				.categoryCode(asset.getCategoryEntity().getCategoryCode())
-				.categoryName(asset.getCategoryEntity().getName())
-				.model(asset.getModel())
+				.categoryName(asset.getCategoryEntity().getName()).model(asset.getModel())
 				.manufacturer(asset.getManufacturer())
-				.isAvailable(asset.getAssetUnitEntities()
-						.stream()
-						.anyMatch(u -> !u.getIsDeleted() && u.getStatus() == AssetUnitStatus.AVAILABLE))
-				.totalStock((long) asset.getAssetUnitEntities().size())
-				.availableStock(asset.getAssetUnitEntities()
-						.stream()
-						.filter(u -> !u.getIsDeleted() && u.getStatus() == AssetUnitStatus.AVAILABLE)
-						.count())
+				.isAvailable(asset.getAssetUnitEntities().stream()
+						.anyMatch(u -> u.getStatus() == UnitStatus.AVAILABLE))
+				.totalStock(Long.valueOf(asset.getAssetUnitEntities().size()))
+				.availableStock(asset.getAssetUnitEntities().stream()
+						.filter(u -> u.getStatus() == UnitStatus.AVAILABLE).count())
 				.build();
 	}
 }
