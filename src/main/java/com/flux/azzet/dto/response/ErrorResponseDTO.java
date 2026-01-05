@@ -1,0 +1,13 @@
+package com.flux.azzet.dto.response;
+
+import org.springframework.http.HttpStatus;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class ErrorResponseDTO {
+    private String message;
+    private HttpStatus httpStatus;
+}
