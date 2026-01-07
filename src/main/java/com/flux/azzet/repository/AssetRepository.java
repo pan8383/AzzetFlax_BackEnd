@@ -64,13 +64,6 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID> {
 			WHERE
 				a.isDeleted = FALSE
 				AND c.isDeleted = FALSE
-				AND EXISTS (
-					SELECT 1
-					FROM AssetUnitEntity u
-					WHERE
-						u.assetEntity = a
-						AND u.isDeleted = FALSE
-				)
 				AND (
 				:kw IS NULL OR :kw = ''
 					OR LOWER(a.name) LIKE LOWER(CONCAT('%', :kw, '%'))
