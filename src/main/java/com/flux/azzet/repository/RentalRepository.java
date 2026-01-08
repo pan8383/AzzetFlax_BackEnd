@@ -50,7 +50,8 @@ public interface RentalRepository extends JpaRepository<RentalEntity, UUID> {
 	@Modifying
 	@Query("""
 			UPDATE RentalEntity u
-			SET u.status = :status
+			SET u.status = :status,
+				u.actualReturnDate = CURRENT_DATE
 			WHERE u.rentalId = :rentalId
 			""")
 	int updateStatus(

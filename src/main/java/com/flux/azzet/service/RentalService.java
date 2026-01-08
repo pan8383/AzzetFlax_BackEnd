@@ -233,8 +233,6 @@ public class RentalService {
 
 		for (RentalReturnRequestDTO request : requests) {
 
-			System.out.println(request);
-
 			// リクエストからレンタルユニットを取得
 			List<RentalUnitEntity> rentalUnitEntities = rentalUnitRepository.findByIds(request.getRentalUnitIds());
 
